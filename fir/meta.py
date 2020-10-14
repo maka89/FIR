@@ -1,4 +1,37 @@
 import autograd.numpy as np
+
+class Sequential:
+    def __init__(self,layers):
+        self.layers = layers
+
+        self.n_params=0
+        for l in self.layers:
+            self.n_params+=l.n_params
+
+        self.n_inp = self.layers[0].n_inp
+        self.n_outp = self.layers[-1].n_out
+    def forward(self,X):
+        h=X
+        for i in range(0,len(self.layers)):
+            h=self.layers[i].forward(h)
+        return h
+    def get_regularization(self):
+        sum1=0.0
+        for i in range(0,len(self.layers)):
+            sum1+=self.layers[i].get_regularization()
+        return sum1
+    def get_params(self):
+        ps = []
+        for i in range(0,len(self.layers)):
+            ps.append(self.layers[i].get_params())
+        return np.concatenate(ps)
+    def set_params(self,ps):
+        n=0
+        for i in range(0,len(self.layers)):
+            m=self.layers[i].n_params
+            self.layers[i].set_params(ps[n:n+m])
+            n+=m
+    
 class ParallelConcat:
     def __init__(self,layers):
         self.layers = layers
