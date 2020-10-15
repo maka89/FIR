@@ -1,5 +1,5 @@
 import fir
-from fir import Model,Dense,DenseL2,DenseL2FFT,Activation,ParallelSum,FIR,FIR_L2FFT,FIR_L2,Sequential,FIRLP,FIR_L2FFT2
+from fir import Model,Dense,DenseL2,DenseL2FFT,Activation,ParallelSum,FIR,FIR_L2FFT,FIR_L2,Sequential,FIRLP_L2,FIR_L2FFT2
 from sklearn.linear_model import LinearRegression,Ridge
 import numpy as np
 
@@ -232,14 +232,15 @@ def test_9():
     n_in=4
     n_out=3
     fir_length=20
+    l2 = 1.0
     X = np.random.randn(n_ex,xlen,n_in)
     Y = np.random.randn(n_ex,xlen,n_out)
 
 
-    m1 = Model([FIRLP(n_in,n_out,fir_length,2)])
+    m1 = Model([FIRLP_L2(n_in,n_out,fir_length,2,l2)])
     m1.fit(X,Y)
 
-    m2 = Model([FIR_L2FFT2(n_in,n_out,fir_length,0.0,6,1e6)])
+    m2 = Model([FIR_L2FFT2(n_in,n_out,fir_length,l2,6,1e6)])
     m2.fit(X,Y)
 
     W1=m1.layers[0].get_W()
