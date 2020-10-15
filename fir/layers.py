@@ -108,6 +108,12 @@ class FIRLP:
 
         return Y
 
+class FIRLP_L2(FIRLP):
+    def __init__(self,n_inp,n_out,fir_length,n_freqs,l2):
+        super().__init__(n_inp,n_out,fir_length,n_freqs)
+        self.l2=l2
+    def get_regularization(self):
+        return self.l2*np.sum(self.get_W()**2)
 class FIR_L2(FIR):
     def __init__(self,n_inp,n_out,fir_length,l2):
         super().__init__(n_inp,n_out,fir_length)
