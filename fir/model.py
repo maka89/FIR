@@ -32,9 +32,9 @@ class Model:
         for i in range(0,len(self.layers)):
             err += self.layers[i].get_regularization()
         return err
-    def fit(self,X,Y):
+    def fit(self,X,Y,disp=False,maxiter=1000):
 
         ps0 = self.get_params()
-        x,f,d = fmin_l_bfgs_b(self.errf,ps0,fprime=self.errf_grad,args=([X,Y],),factr=10,pgtol=1e-10)
+        x,f,d = fmin_l_bfgs_b(self.errf,ps0,fprime=self.errf_grad,args=([X,Y],),factr=10,pgtol=1e-10,disp=disp,maxiter=maxiter)
     def predict(self,X):
         return self.forward(X)

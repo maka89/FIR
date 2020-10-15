@@ -2,6 +2,60 @@ import autograd.numpy as np
 import math
 
 
+class Split:
+    def __init__(self,n_copies=2):
+        self.n_params=0
+        self.n_inp=None
+        self.n_out=None
+        self.n_copies=n_copies
+    def set_params(self,ps):
+        return
+    def get_params(self):
+        return np.zeros(0)
+    def get_regularization(self):
+        return 0.0
+    def forward(self,X):
+        return [X for i in range(0,self.n_copies)]
+
+class Conv1D:
+    def __init__(self,n_inp,n_out,fir_length):
+        self.n_inp=n_inp
+        self.n_out=n_out
+        self.fir_length=fir_length
+        self.n_params = n_inp*n_out*fir_length+n_out
+        self.initialize()
+    def initialize(self):
+        self.W = np.random.randn(self.fir_length,self.n_inp,self.n_out)/np.sqrt(self.n_inp*self.fir_length)
+        self.b = np.zeros(self.n_out)
+
+    def set_params(self,ps):
+        n = self.n_inp*self.n_out*self.fir_length
+        self.W = ps[0:n].reshape(self.fir_length,self.n_inp,self.n_out)
+        self.b = ps[n:n+self.n_out]
+    def get_params(self):
+        return np.concatenate((self.W.ravel(),self.b.ravel()))
+    def get_regularization(self):
+        return 0.0
+
+    def forward(self,X):
+
+        X2 = np.concatenate([np.zeros((X.shape[0],self.fir_length-1,X.shape[2])),X],1)
+        yl =[]
+        for i in range(0,X.shape[1]):
+            tmp=X2[:,i:i+self.fir_length,:][...,np.newaxis]*self.W[::-1][np.newaxis,...]
+            tmp=np.sum(tmp,axis=(1,2),keepdims=True)[:,0,...]
+            yl.append(tmp)
+        Y=np.concatenate(yl,axis=1)
+        return Y+self.b.reshape(1,1,-1)
+
+class Conv1D_L2(Conv1D):
+    def __init__(self,n_inp,n_out,fir_length,l2):
+        super().__init__(n_inp,n_out,fir_length)
+        self.l2 = l2
+    def get_regularization(self):
+        return self.l2*np.sum(self.W**2)
+
+
 class FIR:
     def __init__(self,n_inp,n_out,fir_length):
         self.n_inp = n_inp
@@ -179,7 +233,6 @@ class Dense:
         self.b=np.zeros(self.n_out)
 
     def forward(self,X):
-        assert(X.shape[1]==self.W.shape[0])
         return np.dot(X,self.W)+self.b
 
     def get_params(self):
