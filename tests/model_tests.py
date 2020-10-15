@@ -1,5 +1,5 @@
 import fir
-from fir import Model,Dense,DenseL2,DenseL2FFT,Activation,ParallelSum,FIR,FIR_L2FFT,FIR_L2,Sequential
+from fir import Model,Dense,DenseL2,DenseL2FFT,Activation,ParallelSum,FIR,FIR_L2FFT,FIR_L2,Sequential,FIRLP,FIR_L2FFT2
 from sklearn.linear_model import LinearRegression,Ridge
 import numpy as np
 
@@ -220,6 +220,33 @@ def test_8():
     yp3 = m3.predict(Xp)
 
     if np.max(np.abs(yp1-yp2)) <= 1e-6 and np.max(np.abs(yp1-yp3)) <= 1e-6:
+        return True
+    else:
+        return False
+
+def test_9():
+
+
+    n_ex=2
+    xlen = 100
+    n_in=4
+    n_out=3
+    fir_length=20
+    X = np.random.randn(n_ex,xlen,n_in)
+    Y = np.random.randn(n_ex,xlen,n_out)
+
+
+    m1 = Model([FIRLP(n_in,n_out,fir_length,2)])
+    m1.fit(X,Y)
+
+    m2 = Model([FIR_L2FFT2(n_in,n_out,fir_length,0.0,6,1e6)])
+    m2.fit(X,Y)
+
+    W1=m1.layers[0].get_W()
+    W2=m2.layers[0].W
+
+
+    if np.max(np.abs(W1-W2)) <= 1e-4:
         return True
     else:
         return False
