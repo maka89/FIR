@@ -278,3 +278,137 @@ def test_10():
         return True
     else:
         return False
+
+
+def test_11():
+
+    n_ex = 5
+    xlen = 100
+    fir_length = 15
+    n_in = 1
+    n_out=3
+    l2 = 0.1
+
+
+    n_ex_p=2
+    xlen_p=300
+
+    X1=np.random.randn(n_ex,xlen,n_in)
+    Y1=np.random.randn(n_ex,xlen,n_out)
+    
+    Xp1 = np.random.randn(n_ex_p,xlen_p,n_in)
+
+    m1 = Model([FIR_L2FFT(n_in,n_out,fir_length,l2,3,1,10.0)])
+    m1.fit(X1,Y1)
+    Yp1 = m1.predict(Xp1)
+
+
+
+    Xt = np.concatenate((np.zeros((X1.shape[0],fir_length-1,n_in)),X1),axis=1 )
+    Xtp = np.concatenate((np.zeros((Xp1.shape[0],fir_length-1,n_in)),Xp1),axis=1 )
+
+    X2 = []
+    Y2 = []
+    X2p = []
+    k=0
+    for j in range(0,n_ex):
+        for i in range(0,xlen):
+            k=i+fir_length
+            tmp=Xt[j,k-fir_length:k,:].ravel()
+            X2.append(tmp)
+            Y2.append(Y1[j,i,:].ravel())
+            k+=1
+
+    for j in range(0,2):
+        for i in range(0,300):
+            k=i+fir_length
+            tmp=Xtp[j,k-fir_length:k,:].ravel()
+            X2p.append(tmp)
+
+    X2= np.array(X2)
+    Y2 =np.array(Y2)
+    X2p = np.array(X2p)
+    m2 = Model([DenseL2FFT(n_in*fir_length,n_out,l2,3,1,10.0)])
+    m2.fit(X2,Y2)
+    Yp2 = m2.predict(X2p)
+
+    
+    maxerr = 0.0
+    for j in range(0,n_ex_p):
+        for i in range(0,xlen_p):
+            err=np.max(np.abs(Yp2[j*xlen_p+i,:]-Yp1[j,i,:]))._value
+            if err > maxerr:
+                maxerr = err
+    
+    if maxerr < 1e-6:
+        return True
+    else:
+        return False
+
+
+def test_12():
+
+    n_ex = 5
+    xlen = 100
+    fir_length = 15
+    n_in = 13
+    n_out=3
+    l2 = 0.1
+
+
+    n_ex_p=2
+    xlen_p=300
+
+    X1=np.random.randn(n_ex,xlen,n_in)
+    Y1=np.random.randn(n_ex,xlen,n_out)
+    
+    Xp1 = np.random.randn(n_ex_p,xlen_p,n_in)
+
+    m1 = Model([FIR_L2(n_in,n_out,fir_length,l2)])
+    m1.fit(X1,Y1)
+    Yp1 = m1.predict(Xp1)
+
+
+
+    Xt = np.concatenate((np.zeros((X1.shape[0],fir_length-1,n_in)),X1),axis=1 )
+    Xtp = np.concatenate((np.zeros((Xp1.shape[0],fir_length-1,n_in)),Xp1),axis=1 )
+
+    X2 = []
+    Y2 = []
+    X2p = []
+    k=0
+    for j in range(0,n_ex):
+        for i in range(0,xlen):
+            k=i+fir_length
+            tmp=Xt[j,k-fir_length:k,:].ravel()
+            X2.append(tmp)
+            Y2.append(Y1[j,i,:].ravel())
+            k+=1
+
+    for j in range(0,2):
+        for i in range(0,300):
+            k=i+fir_length
+            tmp=Xtp[j,k-fir_length:k,:].ravel()
+            X2p.append(tmp)
+
+    X2= np.array(X2)
+    Y2 =np.array(Y2)
+    X2p = np.array(X2p)
+    m2 = Model([DenseL2(n_in*fir_length,n_out,l2)])
+    m2.fit(X2,Y2)
+    Yp2 = m2.predict(X2p)
+
+    
+    maxerr = 0.0
+    for j in range(0,n_ex_p):
+        for i in range(0,xlen_p):
+            err=np.max(np.abs(Yp2[j*xlen_p+i,:]-Yp1[j,i,:]))._value
+            if err > maxerr:
+                maxerr = err
+    
+
+
+    if maxerr < 1e-6:
+        return True
+    else:
+        return False
