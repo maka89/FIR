@@ -1,6 +1,137 @@
 import autograd.numpy as np
 import math
+class DenseTimeReg:
+    def __init__(self,n_inp,n_ex,xlen,n_out,n_freqs,l2):
+        self.n_inp = n_inp
+        self.n_out = n_out
+        self.n_freqs=n_freqs
+        self.n_ex = n_ex
+        self.xlen=xlen
+        self.n_params = n_ex*n_inp*n_out*xlen+n_ex*xlen*n_out
+        self.l2 = l2
+        self.initialize()
+    def initialize(self):
+        self.W=np.random.randn(self.n_ex,self.xlen,self.n_inp,self.n_out)
+        self.b = np.zeros((self.n_ex,self.xlen,self.n_out))
+    
 
+    def set_params(self,ps):
+        n=0
+        m = self.n_ex*self.n_inp*self.n_out*self.xlen
+        self.W = ps[n:n+m].reshape(self.n_ex,self.xlen,self.n_inp,self.n_out)
+        n+=m
+
+        m=self.n_ex*self.n_out*self.xlen
+        self.b = ps[n:n+m].reshape(self.n_ex,self.xlen,self.n_out)
+        n+=m
+
+
+    def get_params(self):
+        return np.concatenate((self.W.ravel(),self.b.ravel()))
+
+    def get_regularization(self):
+        FW = np.fft.fft(self.W,axis=1)
+        freqs = np.fft.fftfreq(self.xlen,0.5/self.xlen)
+        freqs = np.abs(freqs)
+        return np.sum(np.abs(FW[:,freqs>=self.n_freqs,:,:])**2)*1000.0
+
+    def forward(self,x):
+        # X - [n_ex, length, n_in]
+        # Y - [n_ex, length, n_out]
+
+        #Y=np.zeros((X.shape[0],X.shape[1],self.n_out))
+        
+
+        Y= np.sum( x[...,np.newaxis]*self.W,axis=-2)
+        Y+=self.b
+
+        return Y
+
+
+class DenseTime:
+    def __init__(self,n_inp,n_ex,xlen,n_out,n_freqs):
+        self.n_inp = n_inp
+        self.n_out = n_out
+        self.n_freqs=n_freqs
+        self.n_ex = n_ex
+        self.xlen=xlen
+        self.n_params = n_ex*n_inp*n_out*(1+2*n_freqs)+n_ex*(1+2*n_freqs)*n_out
+        self.initialize()
+    def initialize(self):
+        self.FWr = np.random.randn(self.n_ex,self.n_freqs,self.n_inp,self.n_out)/np.sqrt(self.n_freqs*self.n_inp)
+        self.FWi = np.random.randn(self.n_ex,self.n_freqs,self.n_inp,self.n_out)/np.sqrt(self.n_freqs*self.n_inp)
+        self.FWc = np.random.randn(self.n_ex,self.n_inp,self.n_out)/np.sqrt(self.n_inp)
+
+        self.Fbr = np.zeros((self.n_ex,self.n_freqs,self.n_out))
+        self.Fbi = np.zeros((self.n_ex,self.n_freqs,self.n_out))
+        self.Fbc = np.zeros((self.n_ex,self.n_out))
+    def set_params(self,ps):
+        n=0
+        m = self.n_ex*self.n_inp*self.n_out*self.n_freqs
+        self.FWr = ps[n:n+m].reshape(self.n_ex,self.n_freqs,self.n_inp,self.n_out)
+        n+=m
+
+        m=self.n_ex*self.n_inp*self.n_out*self.n_freqs
+        self.FWi = ps[n:n+m].reshape(self.n_ex,self.n_freqs,self.n_inp,self.n_out)
+        n+=m
+
+        m=self.n_ex*self.n_inp*self.n_out
+        self.FWc = ps[n:n+m].reshape(self.n_ex,self.n_inp,self.n_out)
+        n+=m
+
+        m=self.n_ex*self.n_out*self.n_freqs
+        self.Fbr = ps[n:n+m].reshape(self.n_ex,self.n_freqs,self.n_out)
+        n+=m
+
+        m=self.n_ex*self.n_out*self.n_freqs
+        self.Fbi = ps[n:n+m].reshape(self.n_ex,self.n_freqs,self.n_out)
+        n+=m
+
+        m=self.n_ex*self.n_out
+        self.Fbc = ps[n:n+m].reshape(self.n_ex,self.n_out)
+        n+=m
+
+    def get_params(self):
+        return np.concatenate((self.FWr.ravel(),self.FWi.ravel(),self.FWc.ravel(),self.Fbr.ravel(),self.Fbi.ravel(),self.Fbc.ravel()))
+
+    def get_regularization(self):
+        return 0.0
+    def get_W(self):
+
+        n=self.xlen-1-2*self.n_freqs
+        FW1 = self.FWr+1j*self.FWi
+
+        ll = [self.FWc.reshape(self.n_ex,1,self.n_inp,self.n_out)+0j,FW1,np.zeros((self.n_ex,n,self.n_inp,self.n_out))+0j,np.conj(FW1[::-1])]
+        FW  = np.concatenate(ll,axis=1)
+        return np.real(np.fft.ifft(FW,axis=1))
+
+    def get_b(self):
+        n=self.xlen-1-2*self.n_freqs
+        Fb1 = self.Fbr+1j*self.Fbi
+
+        ll = [self.Fbc.reshape(self.n_ex,1,self.n_out)+0j,Fb1,np.zeros((self.n_ex,n,self.n_out))+0j,np.conj(Fb1[::-1])]
+        FW  = np.concatenate(ll,axis=1)
+        return np.real(np.fft.ifft(FW,axis=1))
+
+    def forward(self,x):
+        # X - [n_ex, length, n_in]
+        # Y - [n_ex, length, n_out]
+
+        #Y=np.zeros((X.shape[0],X.shape[1],self.n_out))
+        
+
+        W=self.get_W()
+        b=self.get_b()
+        Y= np.sum( x[...,np.newaxis]*W,axis=-2)
+        #Y+=b
+
+        return Y
+class DenseTimeL2(DenseTime):
+    def __init__(self,n_inp,n_ex,xlen,n_out,n_freqs,l2):
+        super().__init__(n_inp,n_ex,xlen,n_out,n_freqs)
+        self.l2 = l2
+    def get_regularization(self):
+        return self.l2*np.sum(self.get_W()**2)
 
 class Split:
     def __init__(self,n_copies=2):
@@ -274,6 +405,8 @@ class Activation:
             self.fn= lambda x: (x>0)*x
         elif atype == 'tanh':
             self.fn= lambda x: np.tanh(x)
+        elif atype == 'sigmoid':
+            self.fn = lambda x: 1.0/(1.0+np.exp(-x) )
         elif atype == 'id':
             self.fn=lambda x:x
         else:
@@ -293,4 +426,18 @@ class Activation:
 
 
 
-    
+class ActivationSq :
+    def __init__(self,param=0.1):
+        
+        self.param=param
+        self.n_params=0
+        self.get_regularization = lambda : 0.0
+
+    def initialize(self):
+        return
+    def set_params(self,ps):
+        return
+    def get_params(self):
+        return np.zeros(0)
+    def forward(self,x):
+        return x+self.param*x**2

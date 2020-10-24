@@ -1,5 +1,5 @@
 import fir
-from fir import Model,Dense,DenseL2,DenseL2FFT,Activation,ParallelSum,FIR,FIR_L2FFT,FIR_L2,Sequential,FIRLP_L2,FIR_L2FFT2,Conv1D,Conv1D_L2
+from fir import Model,Dense,DenseL2,DenseL2FFT,Activation,ParallelSum,FIR,FIR_L2FFT,FIR_L2,Sequential,FIRLP_L2,FIR_L2FFT2,Conv1D,Conv1D_L2,DenseTime,DenseTimeL2
 from sklearn.linear_model import LinearRegression,Ridge
 import numpy as np
 
@@ -409,6 +409,50 @@ def test_12():
 
 
     if maxerr < 1e-6:
+        return True
+    else:
+        return False
+
+
+def test_13():
+
+    n_ex = 2
+    xlen = 100
+    n_in = 3
+    n_out=3
+    l2 = 0.1
+
+
+    X=np.random.randn(n_ex,xlen,n_in)
+    Y=np.random.randn(n_ex,xlen,n_out)*0
+
+    m1 = Model([DenseTimeL2(n_in,n_ex,xlen,n_out,40,0.0)])
+    m1.fit(X,Y)
+
+    Xp = np.random.randn(n_ex,xlen,n_in)
+    maxerr1=np.max(np.abs(m1.predict(Xp)))._value
+
+
+
+
+    n_ex = 2
+    xlen = 1000
+    n_in = 3
+    n_out=3
+    l2 = 0.1
+
+
+    X=np.random.randn(n_ex,xlen,n_in)
+    Y=np.random.randn(n_ex,xlen,n_out)*0
+
+    m1 = Model([DenseTimeL2(n_in,n_ex,xlen,n_out,40,0.0)])
+    m1.fit(X,Y)
+
+    Xp = np.random.randn(n_ex,xlen,n_in)
+    maxerr2=np.max(np.abs(m1.predict(Xp)))._value
+
+
+    if maxerr2 < 1e-6 and maxerr1 > maxerr2*100:
         return True
     else:
         return False
