@@ -6,6 +6,7 @@ I.e. kernels that are large and that are skewed so that output only depends on t
 
 ## Examples
 (See tests folder for more examples)
+    
     from fir import Model,FIR,Activation,Dense
     
     //Generate Input and output data
