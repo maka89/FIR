@@ -5,7 +5,7 @@ Library to do machine learning using Finite Impulse Respoonse convolutions.
 I.e. kernels that are large and that are skewed so that output only depends on the samples that came before.
 
 ## Examples
-
+(See tests folder for more examples)
     from fir import Model,FIR,Activation,Dense
     
     //Generate Input and output data
@@ -42,7 +42,7 @@ I.e. kernels that are large and that are skewed so that output only depends on t
     model = Model([layer1,layer2,layer3,layer4, layer5])
     model.fit(X,Y)
     
-## Meta-Layers
+### Meta-Layers
 
     from fir import ParallelSum,FIR,Sequential,Split
     layer1 = FIR(1,1,100)
