@@ -1,8 +1,11 @@
 
-# FIR
+# FIR - Real Time convolutional neural networks for time series
 
-Library to do machine learning using Finite Impulse Respoonse convolutions.
-I.e. kernels that are large and that are skewed so that output only depends on the samples that came before.
+Library to do machine learning using Finite Impulse Response convolutions.
+I.e. convolutional kernels that are large and that are skewed so that output only depends on the samples that came before.
+
+The weights from the "FIR" type layers contained in this repo can be extracted and used as the  impulse responses in real time convolution algorithms (For instance https://github.com/HiFi-LoFi/FFTConvolver). These types of algorithms can perform convolutions in real time with impulse responses of several million samples.
+
 
 ## Examples
 (See tests folder for more examples)
