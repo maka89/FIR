@@ -21,7 +21,7 @@ The weights from the "FIR" type layers contained in this repo can be extracted a
     layer1 = FIR(1,1,100)
     
     model = Model([layer1])
-    model.fit(X,Y)
+    model.fit_adam(X,Y) #Adam. use model.fit(X,Y) for full batch L-BFGS-B
 
 <!-->
 
@@ -32,7 +32,7 @@ The weights from the "FIR" type layers contained in this repo can be extracted a
     layer3 = FIR(4,1,50)
     
     model = Model([layer1,layer2,layer3])
-    model.fit(X,Y)
+    model.fit_adam(X,Y)
     
  <!-->   
     // 1-input channel, 4 output channels, kernel of length 100.
@@ -44,7 +44,7 @@ The weights from the "FIR" type layers contained in this repo can be extracted a
     layer5 = FIR(5,1,50)
     
     model = Model([layer1,layer2,layer3,layer4, layer5])
-    model.fit(X,Y)
+    model.fit_adam(X,Y)
     
 ### Meta-Layers
 
@@ -59,5 +59,5 @@ The weights from the "FIR" type layers contained in this repo can be extracted a
      
     #OR
     model = Model([Split(2),meta])
-    model.fit(X,Y)
+    model.fit_adam(X,Y)
     
