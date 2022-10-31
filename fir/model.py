@@ -90,10 +90,10 @@ class Model:
                     loss = self.errf(ps_new,[bx,by,drop_first])
                     print("epoch",i,"batch",j,"loss",loss)
                     time0 = time.time()
-            args=[X,Y,drop_first]  
+            #args=[X,Y,drop_first]  
          
-            loss = self.errf(ps_new,args)
-            print("epoch",i,"loss",loss)
+            #loss = self.errf(ps_new,args)
+            #print("epoch",i,"loss",loss)
 
             
 
