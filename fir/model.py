@@ -4,6 +4,7 @@ from autograd import grad,primitive
 from autograd.extend import defvjp
 from scipy.optimize import fmin_l_bfgs_b
 from scipy.linalg import cholesky, solve_triangular
+import time
 @primitive
 def cho_inv(x):
     L = cholesky(x, lower=True)
@@ -54,7 +55,7 @@ class Model:
         ps0 = self.get_params()
         x,f,d = fmin_l_bfgs_b(self.errf,ps0,fprime=self.errf_grad,args=([X,Y,drop_first],),factr=10,pgtol=pgtol,disp=disp,maxiter=maxiter)
 
-    def fit_adam(self,X,Y,disp=False,n_epochs=10,batch_size = 8,drop_first=None,beta_1=0.9,beta_2=0.999,learning_rate = 1e-3):
+    def fit_adam(self,X,Y,disp=False,n_epochs=10,batch_size = 8,drop_first=None,beta_1=0.9,beta_2=0.999,learning_rate = 1e-3,disp_time = 3):
         
         
         m=int(X.shape[0]/batch_size)
@@ -65,7 +66,10 @@ class Model:
         
         loss=1e3
         
+        
+        time0 = time.time()
         t=0
+        
         for i in range(0,n_epochs):
             for j in range(0,m):
                 
@@ -82,7 +86,12 @@ class Model:
                 avt = vt/(1.0-beta_2**t)
                 ps_new = ps - learning_rate*amt/(np.sqrt(avt)+1e-8)
                 self.set_params(ps_new)
+                if time.time() - time0 > disp_time:
+                    loss = self.errf(ps_new,[bx,by,drop_first])
+                    print("epoch",i,"batch",j,"loss",loss)
+                    time0 = time.time()
             args=[X,Y,drop_first]  
+         
             loss = self.errf(ps_new,args)
             print("epoch",i,"loss",loss)
 
