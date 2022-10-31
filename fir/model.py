@@ -43,9 +43,9 @@ class Model:
         Yp = self.forward(X)
 
         if drop_first is not None:
-            err = np.sum((Y[:,drop_first::,:]-Yp[:,drop_first::,:])**2)
+            err = np.mean((Y[:,drop_first::,:]-Yp[:,drop_first::,:])**2)
         else:
-            err = np.sum((Y-Yp)**2)
+            err = np.mean((Y-Yp)**2)
             
         for i in range(0,len(self.layers)):
             err += self.layers[i].get_regularization()
